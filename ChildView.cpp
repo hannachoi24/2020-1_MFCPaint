@@ -22,6 +22,7 @@ using namespace std;
 /* khlee: window view 의 생성자 */
 CChildView::CChildView()
 {
+	mode = NORMAL;
 }
 
 CChildView::~CChildView()
@@ -121,6 +122,14 @@ void CChildView::OnPaint()
 			dc.LineTo(selecting_region->getp2().x, selecting_region->getp2().y);	
 		}
 		break;
+	case DO_FIGURE_SELECT:
+		dc.SelectStockObject(HOLLOW_BRUSH);
+		if (selecting_region)
+		{
+			dc.Rectangle(selecting_region->getp1().x, selecting_region->getp1().y, selecting_region->getp2().x, selecting_region->getp2().y);
+		}
+		break;
+
 	}
 
 
@@ -307,6 +316,13 @@ void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
 		/* khlee: 아래 코드를 실행하면 OnPaint()가 바로 실행됨 */
 		Invalidate(true);
 	}
+	else if (mode == NORMAL)
+	{
+		mode = DO_FIGURE_SELECT;
+		selecting_region = new FigureRectangle(starting_point, point);
+		Invalidate(true);
+
+ 	}
 
 	CWnd::OnLButtonDown(nFlags, point);
 }
@@ -333,7 +349,7 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 
 		/* khlee: 각종 설정을 리셋*/
 		delete selecting_region;	/* khlee: 임시 도형 삭제*/
-		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
+		mode = NORMAL;              /* 마우스 선택 모드를 일반 모드로 변경*/
 		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
 		break;
     
@@ -342,6 +358,12 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 		drawings.push_back(new FigureLine(selecting_region->getp1(), selecting_region->getp2()));
 
 		/* khlee: 각종 설정을 리셋*/
+		delete selecting_region;	/* khlee: 임시 도형 삭제*/
+		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
+		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
+		break;
+
+	case DO_FIGURE_SELECT:
 		delete selecting_region;	/* khlee: 임시 도형 삭제*/
 		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
 		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
@@ -378,6 +400,13 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 		}
 
 		else if (mode == DRAW_Line && selecting_region)
+		{
+			selecting_region->setp1(starting_point);
+			selecting_region->setp2(point);
+			Invalidate(true);
+		}
+		
+		else if (mode == DO_FIGURE_SELECT)
 		{
 			selecting_region->setp1(starting_point);
 			selecting_region->setp2(point);
