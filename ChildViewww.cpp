@@ -105,24 +105,8 @@ void CChildView::OnPaint()
 		dc.SelectStockObject(HOLLOW_BRUSH);
 		if (selecting_region)
 			dc.Rectangle(selecting_region->getp1().x, selecting_region->getp1().y, selecting_region->getp2().x, selecting_region->getp2().y);
-	    break;
-	
-	case DRAW_Ellipse:
-		dc.SelectStockObject(HOLLOW_BRUSH);
-		if (selecting_region)
-			dc.Ellipse(selecting_region->getp1().x, selecting_region->getp1().y, selecting_region->getp2().x, selecting_region->getp2().y);
-		break;
-		
-	case DRAW_Line:
-		dc.SelectStockObject(HOLLOW_BRUSH);
-		if (selecting_region)
-		{   
-			dc.MoveTo(selecting_region->getp1().x, selecting_region->getp1().y);
-			dc.LineTo(selecting_region->getp2().x, selecting_region->getp2().y);	
-		}
 		break;
 	}
-
 
 	/* khlee: 현재 마우스 포인터의 좌표값 출력 (좌표계에 익숙해지면 삭제하세요) */
 	string msg = "Mouse Pose x : " + to_string(current_point.x) + " y: " + to_string(current_point.y);
@@ -135,7 +119,7 @@ void CChildView::OnPaint()
 
 void CChildView::OnDrawcircle()
 {
-	mode = DRAW_Ellipse;
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
 
@@ -147,7 +131,7 @@ void CChildView::OnUpdateDrawcircle(CCmdUI* pCmdUI)
 
 void CChildView::OnDrawline()
 {
-	mode = DRAW_Line;
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
 
@@ -289,25 +273,11 @@ void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
 	{
 		/* khlee: 선택영역을 표현하기 위한 임시 사각형 모양 생성 */
 		
-		selecting_region = new FigureRectangle(starting_point, point);
+		selecting_region = new Rectangle(starting_point, point);
 		/* khlee: 아래 코드를 실행하면 OnPaint()가 바로 실행됨 */
 		Invalidate(true);
 	}
-
-	else if (mode == DRAW_Ellipse)
-	{
-		selecting_region = new FigureEllipse(starting_point, point);
-		/* khlee: 아래 코드를 실행하면 OnPaint()가 바로 실행됨 */
-		Invalidate(true);
-	}
-
-	else if (mode == DRAW_Line)
-	{
-		selecting_region = new FigureLine(starting_point, point);
-		/* khlee: 아래 코드를 실행하면 OnPaint()가 바로 실행됨 */
-		Invalidate(true);
-	}
-
+	
 	CWnd::OnLButtonDown(nFlags, point);
 }
 
@@ -319,27 +289,7 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 	{
 	case DRAW_RECT:
 		/* 현재까지 그려진 모양 그대로 도형 (사각형) 을 생성해서, 내부 벡터에 저장해줌*/
-		drawings.push_back(new FigureRectangle(selecting_region->getp1(), selecting_region->getp2()));
-
-		/* khlee: 각종 설정을 리셋*/
-		delete selecting_region;	/* khlee: 임시 도형 삭제*/
-		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
-		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
-	    break;
-    
-	case DRAW_Ellipse:
-		/* 현재까지 그려진 모양 그대로 도형 (사각형) 을 생성해서, 내부 벡터에 저장해줌*/
-		drawings.push_back(new FigureEllipse(selecting_region->getp1(), selecting_region->getp2()));
-
-		/* khlee: 각종 설정을 리셋*/
-		delete selecting_region;	/* khlee: 임시 도형 삭제*/
-		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
-		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
-		break;
-    
-	case DRAW_Line:
-		/* 현재까지 그려진 모양 그대로 도형 (사각형) 을 생성해서, 내부 벡터에 저장해줌*/
-		drawings.push_back(new FigureLine(selecting_region->getp1(), selecting_region->getp2()));
+		drawings.push_back(new Rectangle(selecting_region->getp1(), selecting_region->getp2()));
 
 		/* khlee: 각종 설정을 리셋*/
 		delete selecting_region;	/* khlee: 임시 도형 삭제*/
@@ -359,7 +309,7 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 	/* Khlee: 마우스 왼쪽 버튼이 눌린 상태로 움직이고 있을 때,
 	point는 현재의 마우스 좌표 (이동된) 를 넘겨받음 */
 	current_point = point;
-	 
+	
 	if (nFlags & MK_LBUTTON)
 	{
 		/* khlee: 사각형을 그리기 위한 임시 사각형이 이미 생성되어 있다면,  */
@@ -369,20 +319,6 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 			selecting_region->setp2(point);
 			Invalidate(true);
 		}	
-
-		else if (mode == DRAW_Ellipse && selecting_region)
-		{
-			selecting_region->setp1(starting_point);
-			selecting_region->setp2(point);
-			Invalidate(true);
-		}
-
-		else if (mode == DRAW_Line && selecting_region)
-		{
-			selecting_region->setp1(starting_point);
-			selecting_region->setp2(point);
-			Invalidate(true);
-		}
 	}
 	
 	CWnd::OnMouseMove(nFlags, point);

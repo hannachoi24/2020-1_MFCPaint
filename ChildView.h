@@ -12,7 +12,9 @@ using namespace std;
 enum mouseMode
 {
 	NORMAL = 1,
-	DRAW_RECT,			/* 사각형 그리기 클릭된 상태 */
+	DRAW_RECT,/* 사각형 그리기 클릭된 상태 */
+	DRAW_Ellipse,
+	DRAW_Line,
 	FIGURE_SELECTED,	/* 도형/그룹이 선택완료된 상태 */
 	FIGURE_MOVE,		/* 도형/그룹을 이동중인 상태 */
 	DO_FIGURE_SELECT	/* 도형/그룹을 선택 중 (드래그 중) 인 상태 */
@@ -31,8 +33,8 @@ public:
 	enum mouseMode mode;
 	CPoint starting_point;
 	CPoint current_point;
-	vector<FigureRectangle*> drawings;
-	FigureRectangle* selecting_region;
+	vector<Figure*> drawings;
+	Figure* selecting_region;
 
 // 작업입니다.
 public:
