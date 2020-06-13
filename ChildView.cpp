@@ -364,10 +364,24 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 		break;
 
 	case DO_FIGURE_SELECT:
+		vector<Figure*>::iterator iter = this->drawings.begin();
+		for (iter; iter != this->drawings.end(); iter++) {
+			if ((*iter)->getp1().x > this->starting_point.x && (*iter)->getp1().y > this->starting_point.y
+				&& (*iter)->getp2().x < this->current_point.x && (*iter)->getp2().y < this->current_point.y)
+				selectedFigure.push_back(iter);
+		}
+
 		delete selecting_region;	/* khlee: 임시 도형 삭제*/
 		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
 		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
 		break;
+
+		
+		
+		
+				
+
+
 	}
 	CWnd::OnLButtonUp(nFlags, point);
 }

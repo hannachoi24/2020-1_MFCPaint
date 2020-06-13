@@ -35,6 +35,9 @@ public:
 	CPoint current_point;
 	vector<Figure*> drawings;
 	Figure* selecting_region;
+	vector<vector<Figure*>::iterator> selectedFigure;
+	
+
 
 // 작업입니다.
 public:
