@@ -93,6 +93,15 @@ void CChildView::OnPaint()
 	/* khlee: 저장해둔 도형들을 모두 그려줌. */
 	for (int i = 0; i < drawings.size(); i++)
 		drawings[i]->draw(&dc);
+	dc.SelectStockObject(NULL_BRUSH);
+
+	for (int i = 0; i < selectedFigure.size(); i++) {
+		(*selectedFigure[i]) -> drawcircle(&dc);
+	
+	}
+
+
+
 	
 	// khlee: 그리기나 영역선택등 임의로 영역을 잡을경우 
 	// pen과 brush를 다르게 설정 (점선과 투명 영역)
@@ -368,7 +377,8 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 		for (iter; iter != this->drawings.end(); iter++) {
 			if ((*iter)->getp1().x > this->starting_point.x && (*iter)->getp1().y > this->starting_point.y
 				&& (*iter)->getp2().x < this->current_point.x && (*iter)->getp2().y < this->current_point.y)
-				selectedFigure.push_back(iter);
+				selectedFigure.push_back(iter);		       
+
 		}
 
 		delete selecting_region;	/* khlee: 임시 도형 삭제*/
