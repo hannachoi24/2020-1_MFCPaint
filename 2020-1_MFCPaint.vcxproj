@@ -185,16 +185,19 @@
   <ItemGroup>
     <ClInclude Include="2020-1_MFCPaint.h" />
     <ClInclude Include="ChildView.h" />
+    <ClInclude Include="factoryFigure.h" />
     <ClInclude Include="Figure.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Selected.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2020-1_MFCPaint.cpp" />
     <ClCompile Include="ChildView.cpp" />
+    <ClCompile Include="factoryFigure.cpp" />
     <ClCompile Include="Figure.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="pch.cpp">
