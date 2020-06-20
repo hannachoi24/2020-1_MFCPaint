@@ -63,26 +63,26 @@ END_MESSAGE_MAP()
 
 // CChildView 메시지 처리기
 
-BOOL CChildView::PreCreateWindow(CREATESTRUCT& cs) 
+BOOL CChildView::PreCreateWindow(CREATESTRUCT& cs)
 {
 	if (!CWnd::PreCreateWindow(cs))
 		return FALSE;
 
 	cs.dwExStyle |= WS_EX_CLIENTEDGE;
 	cs.style &= ~WS_BORDER;
-	cs.lpszClass = AfxRegisterWndClass(CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, 
-		::LoadCursor(nullptr, IDC_ARROW), reinterpret_cast<HBRUSH>(COLOR_WINDOW+1), nullptr);
+	cs.lpszClass = AfxRegisterWndClass(CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS,
+		::LoadCursor(nullptr, IDC_ARROW), reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1), nullptr);
 
 	return TRUE;
 }
 
-void CChildView::OnPaint() 
+void CChildView::OnPaint()
 {
 	CPaintDC dc(this); // 그리기를 위한 디바이스 컨텍스트입니다.
-	
+
 	// TODO: 여기에 메시지 처리기 코드를 추가합니다.
 	/* khlee: 도형 그리기 예시 */
-	
+
 	/* khlee: 참고용 원 그리기 */
 	dc.Ellipse(50, 50, 300, 300);
 
@@ -94,41 +94,40 @@ void CChildView::OnPaint()
 	for (int i = 0; i < drawings.size(); i++)
 		drawings[i]->draw(&dc);
 	dc.SelectStockObject(NULL_BRUSH);
-
-	for (int i = 0; i < selectedFigure.size(); i++) {
-		(*selectedFigure[i]) -> drawcircle(&dc);
-	
+	if (this->selected.size() > 0) {
+		this->selected.drawcircle(&dc);
 	}
 
 
 
-	
+
+
 	// khlee: 그리기나 영역선택등 임의로 영역을 잡을경우 
 	// pen과 brush를 다르게 설정 (점선과 투명 영역)
-	CPen temp_pen(PS_DASH, 1, RGB(0,0,200));
+	CPen temp_pen(PS_DASH, 1, RGB(0, 0, 200));
 	CPen* old_pen = dc.SelectObject(&temp_pen);
 
 	int i;
-	switch(mode)
+	switch (mode)
 	{
 	case DRAW_RECT:
 		dc.SelectStockObject(HOLLOW_BRUSH);
 		if (selecting_region)
 			dc.Rectangle(selecting_region->getp1().x, selecting_region->getp1().y, selecting_region->getp2().x, selecting_region->getp2().y);
-	    break;
-	
+		break;
+
 	case DRAW_Ellipse:
 		dc.SelectStockObject(HOLLOW_BRUSH);
 		if (selecting_region)
 			dc.Ellipse(selecting_region->getp1().x, selecting_region->getp1().y, selecting_region->getp2().x, selecting_region->getp2().y);
 		break;
-		
+
 	case DRAW_Line:
 		dc.SelectStockObject(HOLLOW_BRUSH);
 		if (selecting_region)
-		{   
+		{
 			dc.MoveTo(selecting_region->getp1().x, selecting_region->getp1().y);
-			dc.LineTo(selecting_region->getp2().x, selecting_region->getp2().y);	
+			dc.LineTo(selecting_region->getp2().x, selecting_region->getp2().y);
 		}
 		break;
 	case DO_FIGURE_SELECT:
@@ -191,15 +190,50 @@ void CChildView::OnUpdateDrawrect(CCmdUI* pCmdUI)
 
 void CChildView::OnEditcopy()
 {
-	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	if (selected.size() > 0)
+		this->selected.cpy(clipboard);
+
 }
 
 
 void CChildView::OnUpdateEditcopy(CCmdUI* pCmdUI)
 {
+
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	/* Khlee: 버튼 활성화/비활성화 */
-	if (drawings.size() > 0)
+	if (selected.size() > 0)
+		pCmdUI->Enable(true);
+	else
+		pCmdUI->Enable(false);
+}
+void CChildView::OnEditpaste()
+{
+	Figure* figure;
+	vector<Figure*>::iterator it;
+	vector<Figure*>::iterator nt;
+	if (clipboard.size() > 0) {
+		this->selected.clear();
+		for (it = this->clipboard.begin(); it != this->clipboard.end(); it++) {
+			//(*it)->setp1(CPoint((*it)->getp1().x + 10, (*it)->getp1().y + 10));
+			//(*it)->setp2(CPoint((*it)->getp2().x + 10, (*it)->getp2().y + 10));
+			this->drawings.push_back(*it);
+			nt = this->drawings.end();
+			nt--;
+			this->selected.push_back(nt);
+		}
+		this->selected.cpy(this->clipboard);
+
+	}
+	Invalidate(true);
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CChildView::OnUpdateEditpaste(CCmdUI* pCmdUI)
+{
+	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
+	/* Khlee: 버튼 활성화/비활성화 */
+	if (clipboard.size() > 0)
 		pCmdUI->Enable(true);
 	else
 		pCmdUI->Enable(false);
@@ -208,6 +242,11 @@ void CChildView::OnUpdateEditcopy(CCmdUI* pCmdUI)
 
 void CChildView::OnEditcut()
 {
+	if (selected.size() > 0) {
+		this->selected.cpy(clipboard);
+		this->selected.del(drawings);
+	}
+	Invalidate(true);
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
@@ -216,7 +255,7 @@ void CChildView::OnUpdateEditcut(CCmdUI* pCmdUI)
 {
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	/* Khlee: 버튼 활성화/비활성화 */
-	if (drawings.size() > 0)
+	if (selected.size() > 0)
 		pCmdUI->Enable(true);
 	else
 		pCmdUI->Enable(false);
@@ -225,7 +264,10 @@ void CChildView::OnUpdateEditcut(CCmdUI* pCmdUI)
 
 void CChildView::OnEditdel()
 {
-	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	if (this->selected.size() > 0) {
+		this->selected.del(drawings);
+	}
+	Invalidate(true);
 }
 
 
@@ -233,7 +275,7 @@ void CChildView::OnUpdateEditdel(CCmdUI* pCmdUI)
 {
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	/* Khlee: 버튼 활성화/비활성화 */
-	if (drawings.size() > 0)
+	if (selected.size() > 0)
 		pCmdUI->Enable(true);
 	else
 		pCmdUI->Enable(false);
@@ -242,6 +284,14 @@ void CChildView::OnUpdateEditdel(CCmdUI* pCmdUI)
 
 void CChildView::OnEditdelall()
 {
+	vector<Figure*>::iterator iter = this->drawings.begin();
+	for (iter; iter != this->drawings.end(); iter++) {
+		delete* iter;
+
+	}
+	this->drawings.clear();
+	Invalidate(true);
+
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
@@ -265,21 +315,6 @@ void CChildView::OnUpdateEditgroup(CCmdUI* pCmdUI)
 }
 
 
-void CChildView::OnEditpaste()
-{
-	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-}
-
-
-void CChildView::OnUpdateEditpaste(CCmdUI* pCmdUI)
-{
-	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
-	/* Khlee: 버튼 활성화/비활성화 */
-	if (drawings.size() > 0)
-		pCmdUI->Enable(true);
-	else
-		pCmdUI->Enable(false);
-}
 
 
 void CChildView::OnEditungroup()
@@ -299,14 +334,14 @@ void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	/* khlee: 마우스 왼쪽 버튼이 눌렸을 때, cursor mode에 따른 여러가지 처리 */
 	/* 두번째 parameter인 point에 클릭 당시의 좌표가 넘어옴 */
-	/* CChildView 멤버 변수인 starting_point에 현재 point 좌표를 저장: 
+	/* CChildView 멤버 변수인 starting_point에 현재 point 좌표를 저장:
 	마우스 드래그를 지원하기 위하여 */
 	starting_point = point;
 
 	if (mode == DRAW_RECT)
 	{
 		/* khlee: 선택영역을 표현하기 위한 임시 사각형 모양 생성 */
-		
+
 		selecting_region = new FigureRectangle(starting_point, point);
 		/* khlee: 아래 코드를 실행하면 OnPaint()가 바로 실행됨 */
 		Invalidate(true);
@@ -330,16 +365,23 @@ void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
 		mode = DO_FIGURE_SELECT;
 		selecting_region = new FigureRectangle(starting_point, point);
 		Invalidate(true);
-
- 	}
+	}
+	else if (mode == FIGURE_SELECTED)
+	{
+		mode = FIGURE_MOVE;
+		Invalidate(true);
+	}
 
 	CWnd::OnLButtonDown(nFlags, point);
+
 }
 
 /* khlee: 마우스 왼쪽 버튼 뗄 때 */
 void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	vector<Figure*>::iterator iter;
+	CPoint distance;
 	switch (mode)
 	{
 	case DRAW_RECT:
@@ -350,8 +392,8 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 		delete selecting_region;	/* khlee: 임시 도형 삭제*/
 		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
 		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
-	    break;
-    
+		break;
+
 	case DRAW_Ellipse:
 		/* 현재까지 그려진 모양 그대로 도형 (사각형) 을 생성해서, 내부 벡터에 저장해줌*/
 		drawings.push_back(new FigureEllipse(selecting_region->getp1(), selecting_region->getp2()));
@@ -361,7 +403,7 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 		mode = NORMAL;              /* 마우스 선택 모드를 일반 모드로 변경*/
 		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
 		break;
-    
+
 	case DRAW_Line:
 		/* 현재까지 그려진 모양 그대로 도형 (사각형) 을 생성해서, 내부 벡터에 저장해줌*/
 		drawings.push_back(new FigureLine(selecting_region->getp1(), selecting_region->getp2()));
@@ -373,25 +415,29 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 		break;
 
 	case DO_FIGURE_SELECT:
-		vector<Figure*>::iterator iter = this->drawings.begin();
+		iter = this->drawings.begin();
 		for (iter; iter != this->drawings.end(); iter++) {
 			if ((*iter)->getp1().x > this->starting_point.x && (*iter)->getp1().y > this->starting_point.y
-				&& (*iter)->getp2().x < this->current_point.x && (*iter)->getp2().y < this->current_point.y)
-				selectedFigure.push_back(iter);		       
+				&& (*iter)->getp2().x < this->current_point.x && (*iter)->getp2().y < this->current_point.y) {
+				selected.push_back(iter);
+				mode = FIGURE_SELECTED;
+			}
+			else
+				mode = NORMAL;
 
 		}
+			
+			delete selecting_region;	/* khlee: 임시 도형 삭제*/
+					/* 마우스 선택 모드를 일반 모드로 변경*/
+			Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
+			break;
 
-		delete selecting_region;	/* khlee: 임시 도형 삭제*/
-		mode = NORMAL;				/* 마우스 선택 모드를 일반 모드로 변경*/
-		Invalidate(true);			/* OnPaint() 호출로 화면 업데이트*/
+	case FIGURE_MOVE:
+		distance = current_point - starting_point;
+		if (selected.size() > 0)
+			selected.move(distance);
+		Invalidate(true);
 		break;
-
-		
-		
-		
-				
-
-
 	}
 	CWnd::OnLButtonUp(nFlags, point);
 }
@@ -401,11 +447,23 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	CDC* dc = GetDC();
-
+	bool isOnCursor = false;
+	int index;
 	/* Khlee: 마우스 왼쪽 버튼이 눌린 상태로 움직이고 있을 때,
 	point는 현재의 마우스 좌표 (이동된) 를 넘겨받음 */
 	current_point = point;
-	 
+	int i = drawings.size() - 1;
+	while (isOnCursor==false && i >= 0) {
+		isOnCursor = drawings[i]->onCursor(current_point);
+		i--;
+	}
+	if (isOnCursor == true) {
+		this->onCursor = true;
+	}
+	else
+		onCursor = false;
+
+
 	if (nFlags & MK_LBUTTON)
 	{
 		/* khlee: 사각형을 그리기 위한 임시 사각형이 이미 생성되어 있다면,  */
@@ -414,7 +472,7 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 			selecting_region->setp1(starting_point);
 			selecting_region->setp2(point);
 			Invalidate(true);
-		}	
+		}
 
 		else if (mode == DRAW_Ellipse && selecting_region)
 		{
@@ -429,28 +487,34 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 			selecting_region->setp2(point);
 			Invalidate(true);
 		}
-		
+
 		else if (mode == DO_FIGURE_SELECT)
 		{
 			selecting_region->setp1(starting_point);
 			selecting_region->setp2(point);
 			Invalidate(true);
 		}
+
+		else if (mode == FIGURE_MOVE) {
+
+		}
+
 	}
-	
+
 	CWnd::OnMouseMove(nFlags, point);
 }
 
 /* khlee: 커서 모양 설정 */
 BOOL CChildView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
+
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	/* khlee: 모드에 따른 커서 모양 변경*/
 	/* SetCursor(LoadCursor(0, IDC_CROSS)); 의 마지막 매개변수 조절 (IDC_XXXX)
 	 * IDC_HAND 손모양
 	 * IDC_SIZENS, IDC_SIZENS, IDC_SIZEWE, IDC_SIZENWSW, IDC_SIZENESW 크기조절화살표
-	 * IDC_ARROW 화살표 
-	 * IDC_CROSS 십자가 
+	 * IDC_ARROW 화살표
+	 * IDC_CROSS 십자가
 	 */
 
 	switch (mode)
@@ -458,7 +522,19 @@ BOOL CChildView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 	case DRAW_RECT:
 		SetCursor(LoadCursor(0, IDC_CROSS));
 		break;
+	case DRAW_Ellipse:
+		SetCursor(LoadCursor(0, IDC_CROSS));
+		break;
+    case DRAW_Line:
+		SetCursor(LoadCursor(0, IDC_CROSS));
+		break;	
+	case FIGURE_MOVE:
+		SetCursor(LoadCursor(0, IDC_HAND));
+		break;
 	default:
+		if(this->onCursor==true)
+			SetCursor(LoadCursor(0, IDC_HAND));
+		else
 		SetCursor(LoadCursor(0, IDC_ARROW));
 		break;
 	}

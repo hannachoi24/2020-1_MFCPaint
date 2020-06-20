@@ -8,7 +8,7 @@ class Figure {
 public:
     Figure():p1(0),p2(0), name(""){}
     Figure(CPoint& _p1, CPoint& _p2, string name):p1(_p1), p2(_p2),name(name){}
-    Figure(const Figure& source):p1(source.p1), p2(source.p2), name(source.name){}
+    Figure(const Figure& source):p1(source.p1), p2(source.p2), name(source.name){} //복사생성자
     virtual void draw(CPaintDC* dc) = 0;
     CPoint getp1();
     CPoint getp2();
@@ -16,6 +16,8 @@ public:
     void setp1(CPoint& _p1);
     void setp2(CPoint& _p2);
     virtual void drawcircle(CPaintDC* dc) = 0;
+    bool onCursor(CPoint& current);
+     
 
 
 protected:
@@ -44,7 +46,7 @@ inline void Figure::setp2(CPoint& _p2) {
 
 class FigureRectangle:public Figure {
 public:
-    FigureRectangle():Figure(CPoint(0,0), CPoint(0,0), name("Rectangle")){}
+    FigureRectangle():Figure(CPoint(0,0), CPoint(0,0), "Rectangle"){}
     FigureRectangle(CPoint& _p1, CPoint& _p2) : Figure(_p1, _p2, "Rectangle"){}
     FigureRectangle(const FigureRectangle& source):Figure(source){}
     virtual void draw(CPaintDC* dc);
@@ -54,7 +56,7 @@ public:
 };
 class FigureEllipse :public Figure {
 public:
-    FigureEllipse():Figure(CPoint(0,0), CPoint(0,0), name("Ellipse")){}
+    FigureEllipse(){}
     FigureEllipse(CPoint& _p1, CPoint& _p2) :Figure(_p1, _p2, "Ellipse") {}
     FigureEllipse(const FigureEllipse& source):Figure(source){}
     virtual void draw(CPaintDC* dc);
@@ -65,7 +67,7 @@ public:
 
 class FigureLine :public Figure {
 public:
-    FigureLine():Figure(CPoint(0.0), CPoint(0.0), name("Line")) {}
+    FigureLine():Figure(CPoint(0,0), CPoint(0,0), "Line") {}
     FigureLine(CPoint& _p1, CPoint& _p2) :Figure(_p1, _p2, "Line") {}
     FigureLine(const FigureLine& source):Figure(source){}
     virtual void draw(CPaintDC* dc);

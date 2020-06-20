@@ -5,7 +5,7 @@
 
 #include "Figure.h"
 #include <vector>
-
+#include "Selected.h"
 using namespace std;
 
 /* khlee: 각 메시지 핸들러 내부에서 현재 어떤 메뉴/기능이 선택되어 있는지 확인용 */
@@ -35,9 +35,9 @@ public:
 	CPoint current_point;
 	vector<Figure*> drawings;
 	Figure* selecting_region;
-	vector<vector<Figure*>::iterator> selectedFigure;
-	
-
+	Selected selected;
+	vector<Figure*> clipboard;
+	bool onCursor;
 
 // 작업입니다.
 public:

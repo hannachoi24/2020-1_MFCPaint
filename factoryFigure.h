@@ -7,6 +7,7 @@ class FactoryFigure {
 public:
 	FactoryFigure(){}
 	Figure* generateFigure(Figure* figure);
+	
 
 	
 

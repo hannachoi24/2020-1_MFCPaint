@@ -65,6 +65,9 @@
     <ClCompile Include="factoryFigure.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Selected.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="My20201MFCPaint.rc">
