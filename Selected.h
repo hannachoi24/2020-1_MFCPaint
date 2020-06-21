@@ -14,6 +14,8 @@ public:
 	void clear();
 	int size();
 	void move(CPoint& distance);
+	void Figuresize(CPoint& distance);
+
 
 
 

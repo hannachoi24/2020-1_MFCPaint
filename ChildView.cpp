@@ -190,8 +190,15 @@ void CChildView::OnUpdateDrawrect(CCmdUI* pCmdUI)
 
 void CChildView::OnEditcopy()
 {
+	if (!this->clipboard.empty()) {
+		for (int i = 0; i < this->clipboard.size(); i++) {
+			delete this->clipboard[i];
+		}
+		this->clipboard.clear();
+	}
 	if (selected.size() > 0)
 		this->selected.cpy(clipboard);
+	Invalidate(true);
 
 }
 
@@ -201,6 +208,7 @@ void CChildView::OnUpdateEditcopy(CCmdUI* pCmdUI)
 
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	/* Khlee: 버튼 활성화/비활성화 */
+	
 	if (selected.size() > 0)
 		pCmdUI->Enable(true);
 	else
@@ -209,17 +217,16 @@ void CChildView::OnUpdateEditcopy(CCmdUI* pCmdUI)
 void CChildView::OnEditpaste()
 {
 	Figure* figure;
-	vector<Figure*>::iterator it;
 	vector<Figure*>::iterator nt;
+
 	if (clipboard.size() > 0) {
 		this->selected.clear();
-		for (it = this->clipboard.begin(); it != this->clipboard.end(); it++) {
-			//(*it)->setp1(CPoint((*it)->getp1().x + 10, (*it)->getp1().y + 10));
-			//(*it)->setp2(CPoint((*it)->getp2().x + 10, (*it)->getp2().y + 10));
-			this->drawings.push_back(*it);
-			nt = this->drawings.end();
-			nt--;
-			this->selected.push_back(nt);
+		for (int i=0; i<this->clipboard.size(); i++) {
+
+			clipboard[i]->setp1(CPoint(clipboard[i]->getp1().x + 10, clipboard[i]->getp1().y + 10));
+			clipboard[i]->setp2(CPoint(clipboard[i]->getp2().x + 10, clipboard[i]->getp2().y + 10));
+			this->drawings.push_back(clipboard[i]);
+			
 		}
 		this->selected.cpy(this->clipboard);
 
@@ -242,6 +249,12 @@ void CChildView::OnUpdateEditpaste(CCmdUI* pCmdUI)
 
 void CChildView::OnEditcut()
 {
+	if (!this->clipboard.empty()) {
+		for (int i = 0; i < this->clipboard.size(); i++) {
+			delete this->clipboard[i];
+		}
+		this->clipboard.clear();
+	}
 	if (selected.size() > 0) {
 		this->selected.cpy(clipboard);
 		this->selected.del(drawings);
@@ -362,14 +375,46 @@ void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 	else if (mode == NORMAL)
 	{
-		mode = DO_FIGURE_SELECT;
-		selecting_region = new FigureRectangle(starting_point, point);
+		if (this->onCursor == false) {
+			mode = DO_FIGURE_SELECT;
+			selecting_region = new FigureRectangle(starting_point, point);
+		}
+		else
+		{
+			bool isOnCursor = false;
+			if (selected.size() > 0) {
+				selected.clear();
+			}
+			int i = drawings.size() - 1;
+			vector<Figure*>::iterator it = drawings.end();
+			while (isOnCursor == false && i >= 0) {
+				isOnCursor = drawings[i]->onCursor(current_point);
+				it--;
+				i--;
+			}
+			if (isOnCursor == true) {
+				this->onCursor = true;
+				selected.push_back(it);
+				mode = FIGURE_SELECTED;
+			}
+			else
+				onCursor = false;
+
+		}
 		Invalidate(true);
+
 	}
 	else if (mode == FIGURE_SELECTED)
 	{
-		mode = FIGURE_MOVE;
+		if (this->onCursor == true) {
+			mode = FIGURE_MOVE;
+		}
+		else {
+			selected.clear();
+			mode = NORMAL;
+		}
 		Invalidate(true);
+
 	}
 
 	CWnd::OnLButtonDown(nFlags, point);
@@ -417,8 +462,8 @@ void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 	case DO_FIGURE_SELECT:
 		iter = this->drawings.begin();
 		for (iter; iter != this->drawings.end(); iter++) {
-			if ((*iter)->getp1().x > this->starting_point.x && (*iter)->getp1().y > this->starting_point.y
-				&& (*iter)->getp2().x < this->current_point.x && (*iter)->getp2().y < this->current_point.y) {
+			if ((*iter)->getp1().x > p1.x && (*iter)->getp1().y > p1.y
+				&& (*iter)->getp2().x < p2.x && (*iter)->getp2().y < p2.y) {
 				selected.push_back(iter);
 				mode = FIGURE_SELECTED;
 			}
@@ -462,36 +507,53 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 	}
 	else
 		onCursor = false;
-
+	if (starting_point.x < current_point.x) {
+		p1.x = starting_point.x;
+		p2.x = current_point.x;
+	}
+	else
+	{
+		p1.x = current_point.x;
+		p2.x = starting_point.x;
+	}
+	if (starting_point.y < current_point.y) {
+		p1.y = starting_point.y;
+		p2.y = current_point.y;
+	}
+	else
+	{
+		p1.y = current_point.y;
+		p2.y = starting_point.y;
+	}
 
 	if (nFlags & MK_LBUTTON)
 	{
 		/* khlee: 사각형을 그리기 위한 임시 사각형이 이미 생성되어 있다면,  */
 		if (mode == DRAW_RECT && selecting_region)
 		{
-			selecting_region->setp1(starting_point);
-			selecting_region->setp2(point);
+			selecting_region->setp1(p1);
+			selecting_region->setp2(p2);
 			Invalidate(true);
 		}
 
 		else if (mode == DRAW_Ellipse && selecting_region)
 		{
-			selecting_region->setp1(starting_point);
-			selecting_region->setp2(point);
+			selecting_region->setp1(p1);
+			selecting_region->setp2(p2);
 			Invalidate(true);
 		}
 
 		else if (mode == DRAW_Line && selecting_region)
 		{
-			selecting_region->setp1(starting_point);
-			selecting_region->setp2(point);
+			selecting_region->setp1(p1);
+			selecting_region->setp2(p2);
 			Invalidate(true);
 		}
 
 		else if (mode == DO_FIGURE_SELECT)
 		{
-			selecting_region->setp1(starting_point);
-			selecting_region->setp2(point);
+			selecting_region->setp1(p1);
+			selecting_region->setp2(p2);
 			Invalidate(true);
 		}
 

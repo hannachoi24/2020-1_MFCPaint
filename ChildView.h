@@ -38,6 +38,9 @@ public:
 	Selected selected;
 	vector<Figure*> clipboard;
 	bool onCursor;
+	CPoint p1;
+	CPoint p2;
+
 
 // 작업입니다.
 public:

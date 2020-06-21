@@ -49,3 +49,8 @@ void Selected::move(CPoint& distance) {
 		
 	}
 }
+
+void Selected::Figuresize(CPoint& distance) {
+	for (int i = 0; i < selected.size(); i++) {
+	}
+}
